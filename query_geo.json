@@ -1,0 +1,40 @@
+{"host": "datalake1",
+ "port": 27018,
+ "db": "dbtest_ma",
+ "col": "coltest2",
+ "batchSize": 1000,
+ "nthread": 32,
+ "operation": {
+     "type":"insert",
+     "number": 100,
+     "schema":
+     {
+	 "type":"object",
+	 "fields":{
+	     "geoloc.coordinates": {
+		 "type": "object",
+		 "fields":{
+		     "$near":{
+			 "type":"object",
+			 "fields":{
+			     "$geometry":{
+				 "type":"object",
+				 "fields":{
+				     "type": {"type":"cststring","content":"Point"},
+				     "coordinates": {
+					 "type": "array",
+					 "min":2,
+					 "max":2,
+					 "value": {"type":"float","min":0,"max":50}
+				     }
+				 }
+			     },
+			     "$maxDistance":{"type":"integer","min":10000,"max":200000}
+			 }
+		     }
+		 }
+	     }
+	 }
+     }
+ }
+}

@@ -1,0 +1,36 @@
+{"type":"object",
+ "fields":{
+     "_index": {"type":"integer","min":0,"max":10000000},
+     "firstname": {"type":"file","path":"first-names.txt"},
+     "lastname": {"type":"file","path":"last-names.txt"},
+     "yob": {"type":"integer","min":1960,"max":1998},
+     "cv": {"type":"text","path":"words_10k.txt","length":100},
+     "address": {"type":"object",
+		 "fields":{
+		     "number": {"type":"integer", "min":1, "max":1000},
+		     "city": {"type":"file", "path":"cities.txt"}
+		 }
+		},
+     "geoloc":{
+	 "type":"object",
+	 "fields":{
+	     "coordinates":{
+		 "type": "object",
+		 "fields":{
+		     "type": {"type":"cststring", "content":"Point"},
+		     "coordinates":{
+			 "type": "array",
+			 "min": 2,
+			 "max": 2
+			 "value": {
+			     "type": "float",
+			     "min": 0,
+			     "max": 50
+			 }
+		     }
+		 }
+	     }
+	 }
+     }
+ }
+}

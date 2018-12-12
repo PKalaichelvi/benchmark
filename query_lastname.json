@@ -1,0 +1,5 @@
+{"type":"object",
+ "fields":{
+     "lastname": {"type":"file","path":"last-names.txt"}
+ }
+}
