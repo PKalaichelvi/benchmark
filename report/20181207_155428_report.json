@@ -1,0 +1,1 @@
+{"host": "datalake1", "port": 27018, "db": "dbtest", "col": "coltest4", "operation": "find", "documents": 100000, "size": 10000, "batchSize": 1000, "nthread": 32, "schema": "schema.json", "query": "query_firstname.json", "duration": 26.031838178634644, "tps": 3841.4498167122883, "client_hostname": "datalake2"}

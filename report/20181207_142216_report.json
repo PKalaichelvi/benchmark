@@ -1,0 +1,1 @@
+{"host": "datalake1", "port": 27018, "db": "dbtest", "col": "coltest4", "operation": "insert", "documents": 2, "size": 10000, "batchSize": 1000, "nthread": 1, "schema": "schema.json", "duration": 2.004490852355957, "tps": 0.9977596044648053, "client_hostname": "datalake2"}
