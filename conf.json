@@ -1,16 +1,13 @@
 {
-    "database"{
-	"type":"mongodb",
-	"host": "datalake1",
-	"port": 27018,
-	"db": "dbtest_ma",
-	"col": "coltest2"
-    },
+    "host": "datalake1",
+    "port": 27018,
+    "db": "dbtest",
+    "col": "coltest",
  "batchSize": 1000,
  "nthread": 32,
  "operation": {
      "type":"insert",
-     "number": 10000000,
+     "number": 1000000,
      "schema":
      {
 	 "type":"object",

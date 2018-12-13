@@ -14,7 +14,7 @@ import yaml
 import argparse
 import socket
 import pymongo
-import elasticsearch
+#import elasticsearch
 
 letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -85,29 +85,51 @@ def gendoc(schema,env):
         env[ident] = final_ret
     return final_ret
 
-def monitor(lock, start_time, inserted_documents, total,batchSize,conf):
+def monitor(lock_rem, lock_fin, lock_nret, start_time, remaining_operations, finished_operations, nreturned_operations, total, batchSize, conf):
         percent = 0
-        while percent < 100:
-                duration = time.time()-start_time
-                tps = inserted_documents.value / duration
-                percent = (float(inserted_documents.value) / float(total)) * 100.0
-                total_estimated_time = 0
+        last_remaining_operations = remaining_operations.value
+        last_finished_operations = finished_operations.value
+        last_time = start_time
+        tps = 0
+        while finished_operations.value < total:
+                current_time = time.time()
+                current_duration = current_time - last_time
+                current_finished_operations = finished_operations.value - last_finished_operations
+                tps = current_finished_operations / current_duration
+                last_finished_operations = finished_operations.value
+                last_time = current_time
+                percent = (float(finished_operations.value) / float(total)) * 100.0
+                remaining_estimated_time = 0
                 if tps != 0:
-                        total_estimated_time = float(total)/float(tps)
-                print("[{0:.2f}%] [{1:.2f}s / {2:.2f}s] [{3:.2f} tps] [{4} documents]\r".format(percent,duration,total_estimated_time,tps,humanize.intcomma(inserted_documents.value)),end="")
+                        remaining_estimated_time = float(total - finished_operations.value)/float(tps)
+                print("[{0:.2f}%] [{1:.2f}s / {2:.2f}s] [{3:.2f} tps] [{4} finished] [{5} remaining] [{6} returned]                  \r".format(
+                    percent,
+                    time.time()-start_time,
+                    remaining_estimated_time,
+                    tps,
+                    humanize.intcomma(finished_operations.value),
+                    humanize.intcomma(remaining_operations.value),
+                    humanize.intcomma(nreturned_operations.value)
+                ),end="")
                 time.sleep(1)
         duration = time.time()-start_time
-        tps = inserted_documents.value / duration
-        percent = (float(inserted_documents.value) / float(total)) * 100.0
-        print("[{0:.2f}%] [{1:.2f} s] [{2:.2f} tps] [{3} documents]                             ".format(percent,duration,tps,humanize.intcomma(inserted_documents.value)))
+        tps = finished_operations.value / duration
+        percent = (float(finished_operations.value) / float(total)) * 100.0
+        print("[{0:.2f}%] [{1:.2f} s] [{2:.2f} tps] [{3} finished] [{4} remaining] [{5} returned]                 ".format(
+            percent,
+            duration,
+            tps,
+            humanize.intcomma(finished_operations.value),
+            humanize.intcomma(remaining_operations.value),
+            humanize.intcomma(nreturned_operations.value)))
+
         conf["duration"] = duration
         conf["tps"] = tps
         conf["client_hostname"] = socket.gethostname()
         report = open(time.strftime("report/%Y%m%d_%H%M%S_report.json"),"w")
         json.dump(conf,report)
         
-# f_insert: doc -> () TODO TODO TODO TODO
-def insert_one(lock, conf,inserted_documents,f_insert_one):
+def insert(lock_rem, lock_fin, lock_nret, conf,remaining_operations,finished_operations,nreturned_operations):
     total = conf["operation"]["number"]
     batchSize = conf["batchSize"]
     schema = conf["operation"]["schema"]
@@ -120,11 +142,11 @@ def insert_one(lock, conf,inserted_documents,f_insert_one):
 
     start_time = time.time()
     while True:
-            with lock:
-                    if not inserted_documents.value < total:
+            with lock_rem:
+                    if remaining_operations.value <= 0:
                             break
-                    n = min(batchSize,total-inserted_documents.value)
-                    inserted_documents.value = inserted_documents.value + n
+                    n = min(batchSize,remaining_operations.value)
+                    remaining_operations.value = remaining_operations.value - n
             docs = []
             for i in range(0,n):
                     #doc = {"_index":random.randint(0,total),"data":(random.choice(letters))*size}
@@ -132,38 +154,12 @@ def insert_one(lock, conf,inserted_documents,f_insert_one):
                     docs.append(doc)
             try:
                     col.insert_many(docs)
+                    with lock_fin:
+                        finished_operations.value = finished_operations.value + n
             except pymongo.errors.BulkWriteError as bwe:
                     print(bwe.details)
 
-def insert(lock, conf,inserted_documents):
-    total = conf["operation"]["number"]
-    batchSize = conf["batchSize"]
-    schema = conf["operation"]["schema"]
-
-    #connString = "mongodb://"+conf["username"]+":"+conf["password"]+"@"+conf["host"]+":"+str(conf["port"])+"/"+conf["authSource"]
-    connString = "mongodb://"+conf["host"]+":"+str(conf["port"])
-    client = pymongo.MongoClient(connString)
-    db = client[conf["db"]]
-    col = db[conf["col"]]
-
-    start_time = time.time()
-    while True:
-            with lock:
-                    if not inserted_documents.value < total:
-                            break
-                    n = min(batchSize,total-inserted_documents.value)
-                    inserted_documents.value = inserted_documents.value + n
-            docs = []
-            for i in range(0,n):
-                    #doc = {"_index":random.randint(0,total),"data":(random.choice(letters))*size}
-                    doc = gendoc(schema,{})
-                    docs.append(doc)
-            try:
-                    col.insert_many(docs)
-            except pymongo.errors.BulkWriteError as bwe:
-                    print(bwe.details)
-
-def find(lock, conf,inserted_documents):
+def find(lock_rem, lock_fin, lock_nret,conf,remaining_operations,finished_operations,nreturned_operations):
     total = conf["operation"]["number"]
     batchSize = conf["batchSize"]
     query = conf["operation"]["schema"]
@@ -176,17 +172,29 @@ def find(lock, conf,inserted_documents):
     
     start_time = time.time()
     while True:
-            with lock:
-                    if not inserted_documents.value < total:
+            with lock_rem:
+                    if remaining_operations.value <= 0:
                             break
-                    n = min(conf["batchSize"],total-inserted_documents.value)
-                    inserted_documents.value = inserted_documents.value + n
+                    n = min(conf["batchSize"],remaining_operations.value)
+                    remaining_operations.value = remaining_operations.value - n
             #docs = []
             for i in range(0,n):
                     #doc = {"_index":random.randint(0,total),"data":(random.choice(letters))*size}
                     #docs.append(doc)
                     doc = gendoc(query,{})
-                    col.find(doc).count()
+                    j = 0
+                    if "limit" in conf["operation"]:
+                        c = col.find(doc).limit(conf["operation"]["limit"])
+                    else:
+                        c = col.find(doc)
+                    for doc in c:
+                        j += 1
+                    with lock_nret:
+                        nreturned_operations.value = nreturned_operations.value + j
+                    
+            with lock_fin:
+                finished_operations.value = finished_operations.value + n
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MongoDB Insert Benchmark')
@@ -196,11 +204,24 @@ if __name__ == "__main__":
 
     nthread = conf["nthread"]
     operation = conf["operation"]["type"]
-    inserted_documents = Value('i',0)
+    remaining_operations = Value('i',conf["operation"]["number"])
+    finished_operations = Value('i',0)
+    nreturned_operations = Value('i',0)
     
-    lock = Lock()
+    lock_rem = Lock()
+    lock_fin = Lock()
+    lock_nret = Lock()
     
-    Process(target=monitor, args=(lock, time.time(),inserted_documents,conf["operation"]["number"],conf["batchSize"],conf)).start()
+    Process(target=monitor, args=(lock_rem,
+                                  lock_fin,
+                                  lock_nret,
+                                  time.time(),
+                                  remaining_operations,
+                                  finished_operations,
+                                  nreturned_operations,
+                                  conf["operation"]["number"],
+                                  conf["batchSize"],
+                                  conf)).start()
 
     if operation == "insert":
             f = insert
@@ -208,5 +229,12 @@ if __name__ == "__main__":
             f = find
     
     for i in range(nthread):
-        Process(target=f, args=(lock,conf,inserted_documents)).start()
+        Process(target=f, args=(lock_rem,
+                                lock_fin,
+                                lock_nret,
+                                conf,
+                                remaining_operations,
+                                finished_operations,
+                                nreturned_operations
+        )).start()
 
