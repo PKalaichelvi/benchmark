@@ -20,6 +20,15 @@ letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 file_registry = {}
 
+def gensort(s):
+    ret = []
+    for k in s:
+        if s[k] == 1:
+            ret.append((k,pymongo.ASCENDING))
+        elif s[k] == -1:
+            ret.append((k,pymongo.DESCENDING))
+    return ret
+
 def gendoc(schema,env):
     type_ = schema["type"]
     final_ret = None
@@ -38,6 +47,9 @@ def gendoc(schema,env):
         for i in range(l):
             tab.append(gendoc(value,env))
         final_ret = tab
+    elif type_ == "cstinteger":
+        content = schema["content"]
+        final_ret =  content
     elif type_ == "cststring":
         content = schema["content"]
         final_ret =  content
@@ -59,6 +71,16 @@ def gendoc(schema,env):
         min_ = schema["min"]
         max_ = schema["max"]
         final_ret =  min_ + random.random() * (max_ - min_)
+    elif type_ == "gauss":
+        min_ = schema["min"]
+        max_ = schema["max"]
+        mu = schema["mu"]
+        sigma = schema["sigma"]
+        final_ret = random.gauss(mu,sigma)
+        if final_ret < min_:
+            final_ret = min_
+        elif final_ret > max_:
+            final_ret = max_
     elif type_ == "file":
         path = schema["path"]
         if not path in file_registry:
@@ -126,6 +148,11 @@ def monitor(lock_rem, lock_fin, lock_nret, start_time, remaining_operations, fin
         conf["duration"] = duration
         conf["tps"] = tps
         conf["client_hostname"] = socket.gethostname()
+        conf["finished"] = finished_operations.value
+        conf["remaining"] = remaining_operations.value
+        conf["nreturned"] = nreturned_operations.value
+        conf["nreturned_per_operation"] = nreturned_operations.value / finished_operations.value
+        conf["example"] = gendoc(conf["operation"]["schema"],{})
         report = open(time.strftime("report/%Y%m%d_%H%M%S_report.json"),"w")
         json.dump(conf,report)
         
@@ -183,10 +210,14 @@ def find(lock_rem, lock_fin, lock_nret,conf,remaining_operations,finished_operat
                     #docs.append(doc)
                     doc = gendoc(query,{})
                     j = 0
+                    proj = {}
+                    if "projection" in conf["operation"]:
+                        proj = gendoc(conf["operation"]["projection"],{})
+                    c = col.find(doc,proj)
+                    if "sort" in conf["operation"]:
+                        c = c.sort(gensort(conf["operation"]["sort"]))
                     if "limit" in conf["operation"]:
-                        c = col.find(doc).limit(conf["operation"]["limit"])
-                    else:
-                        c = col.find(doc)
+                        c = c.limit(conf["operation"]["limit"])
                     for doc in c:
                         j += 1
                     with lock_nret:

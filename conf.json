@@ -62,9 +62,11 @@
 			      "min": 2,
 			      "max": 2,
 			      "value": {
-				  "type": "float",
+				  "type": "gauss",
 				  "min": 0,
-				  "max": 50
+				  "max": 50,
+				  "mu":25,
+				  "sigma":3
 			      }
 			  }
 		      }

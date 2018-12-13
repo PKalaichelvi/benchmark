@@ -3,14 +3,34 @@
  "db": "dbtest",
  "col": "coltest",
  "batchSize": 1,
- "nthread": 10,
+ "nthread": 2,
  "operation": {
      "type":"find",
-     "number": 1000,
+     "number": 100,
+     "limit": 1000,
+     "sort":{
+         "MatchxClusterIds.confidenceRate":-1
+     },
+     "projection":{
+	 "type":"object",
+	 "fields":{
+	     "lastname":{"type":"cstinteger","content":1}
+	 }
+     },
      "schema":
      {
 	 "type":"object",
 	 "fields":{
+	     "MatchxClusterIds.confidenceRate": {
+		 "type": "object",
+		 "fields":{
+		     "$gt":{
+			 "type":"float",
+			 "min":0.1,
+			 "max":0.2
+		     }
+		 }
+	     },
 	     "geoloc.coordinates": {
 		 "type": "object",
 		 "fields":{
@@ -25,13 +45,7 @@
 					 "type": "array",
 					 "min":2,
 					 "max":2,
-					 "value": {
-					     "type": "gauss",
-					     "min": 0,
-					     "max": 50,
-					     "mu":25,
-					     "sigma":3
-					 }
+					 "value": {"type":"gauss","min":0,"max":50,"mu":25,"sigma":3}
 				     }
 				 }
 			     },

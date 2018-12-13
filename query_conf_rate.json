@@ -6,7 +6,6 @@
  "nthread": 2,
  "operation": {
      "type":"find",
-     "limit":10000,
      "number": 100,
      "schema":
      {
