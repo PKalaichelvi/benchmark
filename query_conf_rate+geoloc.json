@@ -7,16 +7,6 @@
  "operation": {
      "type":"find",
      "number": 100,
-     "limit": 1000,
-     "sort":{
-         "MatchxClusterIds.confidenceRate":-1
-     },
-     "projection":{
-	 "type":"object",
-	 "fields":{
-	     "lastname":{"type":"cstinteger","content":1}
-	 }
-     },
      "schema":
      {
 	 "type":"object",

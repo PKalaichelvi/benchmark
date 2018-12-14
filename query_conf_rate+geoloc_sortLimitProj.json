@@ -6,22 +6,21 @@
  "nthread": 2,
  "operation": {
      "type":"find",
-     "limit": 200,
+     "number": 100,
+     "limit": 1000,
      "sort":{
-	 "MatchxClusterIds.confidenceRate": -1
+         "MatchxClusterIds.confidenceRate":-1
      },
-     "number": 1000,
+     "projection":{
+	 "type":"object",
+	 "fields":{
+	     "lastname":{"type":"cstinteger","content":1}
+	 }
+     },
      "schema":
      {
 	 "type":"object",
 	 "fields":{
-	     "MatchxClusterIds.clusters.cluster1.id": {"type":"integer","min":1,"max":15,"ident":"clusterid"},
-	     "MatchxClusterIds.clusters.cluster1.uid1":{
-		 "type":"refprefstring",
-		 "ref":"clusterid",
-		 "prefix":"s",
-		 "value":{"type":"integer","min":0,"max":5}
-	     },
 	     "MatchxClusterIds.confidenceRate": {
 		 "type": "object",
 		 "fields":{
@@ -46,7 +45,7 @@
 					 "type": "array",
 					 "min":2,
 					 "max":2,
-					 "value": {"type":"float","min":0,"max":50}
+					 "value": {"type":"gauss","min":0,"max":50,"mu":25,"sigma":3}
 				     }
 				 }
 			     },

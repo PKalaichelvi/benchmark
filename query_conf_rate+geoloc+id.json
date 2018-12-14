@@ -16,12 +16,6 @@
 	 "type":"object",
 	 "fields":{
 	     "MatchxClusterIds.clusters.cluster1.id": {"type":"integer","min":1,"max":15,"ident":"clusterid"},
-	     "MatchxClusterIds.clusters.cluster1.uid1":{
-		 "type":"refprefstring",
-		 "ref":"clusterid",
-		 "prefix":"s",
-		 "value":{"type":"integer","min":0,"max":5}
-	     },
 	     "MatchxClusterIds.confidenceRate": {
 		 "type": "object",
 		 "fields":{
