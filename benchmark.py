@@ -81,6 +81,12 @@ def gendoc(schema,env):
             final_ret = min_
         elif final_ret > max_:
             final_ret = max_
+    elif type_ == "rectangle":
+        x1 = gendoc(schema["x1"],env)
+        y1 = gendoc(schema["y1"],env)
+        x2 = gendoc(schema["x2"],env)
+        y2 = gendoc(schema["y2"],env)
+        final_ret = [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
     elif type_ == "file":
         path = schema["path"]
         if not path in file_registry:

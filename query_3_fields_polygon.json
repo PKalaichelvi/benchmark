@@ -6,7 +6,7 @@
  "nthread": 2,
  "operation": {
      "type":"find",
-     "number": 10000,
+     "number": 1000,
      "schema":
      {
 	 "type":"object",
@@ -18,35 +18,30 @@
 		 "prefix":"s",
 		 "value":{"type":"integer","min":0,"max":5}
 	     },
-	     "MatchxClusterIds.confidenceRate": {
-		 "type": "object",
-		 "fields":{
-		     "$gt":{
-			 "type":"float",
-			 "min":0.1,
-			 "max":0.2
-		     }
-		 }
-	     },
 	     "geoloc.coordinates": {
 		 "type": "object",
 		 "fields":{
-		     "$near":{
+		     "$geoWithin":{
 			 "type":"object",
 			 "fields":{
 			     "$geometry":{
 				 "type":"object",
 				 "fields":{
-				     "type": {"type":"cststring","content":"Point"},
+				     "type": {"type":"cststring","content":"Polygon"},
 				     "coordinates": {
 					 "type": "array",
-					 "min":2,
-					 "max":2,
-					 "value": {"type":"float","min":0,"max":50}
+					 "min":1,
+					 "max":1,
+					 "value": {
+					     "type": "rectangle",
+					     "x1":{"type":"float","min":0,"max":25},
+					     "y1":{"type":"float","min":0,"max":25},
+					     "x2":{"type":"float","min":25,"max":50},
+					     "y2":{"type":"float","min":25,"max":50}
+					 }
 				     }
 				 }
-			     },
-			     "$maxDistance":{"type":"integer","min":10000,"max":200000}
+			     }
 			 }
 		     }
 		 }

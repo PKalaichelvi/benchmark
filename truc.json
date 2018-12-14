@@ -1,0 +1,109 @@
+{
+  "host": "datalake1",
+  "port": 27018,
+  "db": "dbtest",
+  "col": "coltest",
+  "batchSize": 1,
+  "nthread": 2,
+  "operation": {
+    "type": "find",
+    "limit": 200,
+    "sort": {
+      "MatchxClusterIds.confidenceRate": -1
+    },
+    "number": 1000,
+    "schema": {
+      "type": "object",
+      "fields": {
+        "MatchxClusterIds.clusters.cluster1.id": {
+          "type": "integer",
+          "min": 1,
+          "max": 15,
+          "ident": "clusterid"
+        },
+        "MatchxClusterIds.clusters.cluster1.uid1": {
+          "type": "refprefstring",
+          "ref": "clusterid",
+          "prefix": "s",
+          "value": {
+            "type": "integer",
+            "min": 0,
+            "max": 5
+          }
+        },
+        "MatchxClusterIds.confidenceRate": {
+          "type": "object",
+          "fields": {
+            "$gt": {
+              "type": "float",
+              "min": 0.1,
+              "max": 0.2
+            }
+          }
+        },
+        "geoloc.coordinates": {
+          "type": "object",
+          "fields": {
+            "$near": {
+              "type": "object",
+              "fields": {
+                "$geometry": {
+                  "type": "object",
+                  "fields": {
+                    "type": {
+                      "type": "cststring",
+                      "content": "Point"
+                    },
+                    "coordinates": {
+                      "type": "array",
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "type": "gauss",
+                        "min": 0,
+                        "max": 50,
+                        "mu": 25,
+                        "sigma": 3
+                      }
+                    }
+                  }
+                },
+                "$maxDistance": {
+                  "type": "integer",
+                  "min": 10000,
+                  "max": 200000
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "duration": 123.15799760818481,
+  "tps": 8.11965133747467,
+  "client_hostname": "datalake1",
+  "finished": 1000,
+  "remaining": 0,
+  "nreturned": 110120,
+  "nreturned_per_operation": 110.12,
+  "example": {
+    "MatchxClusterIds.clusters.cluster1.id": 8,
+    "MatchxClusterIds.clusters.cluster1.uid1": "8s1",
+    "MatchxClusterIds.confidenceRate": {
+      "$gt": 0.1811550306525845
+    },
+    "geoloc.coordinates": {
+      "$near": {
+        "$geometry": {
+          "type": "Point",
+          "coordinates": [
+            27.64773198485104,
+            21.816583981362708
+          ]
+        },
+        "$maxDistance": 118571
+      }
+    }
+  }
+}
