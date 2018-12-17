@@ -15,6 +15,7 @@ import argparse
 import socket
 import pymongo
 #import elasticsearch
+import datetime
 
 letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -151,6 +152,7 @@ def monitor(lock_rem, lock_fin, lock_nret, start_time, remaining_operations, fin
             humanize.intcomma(remaining_operations.value),
             humanize.intcomma(nreturned_operations.value)))
 
+        conf["timestamp"] = datetime.datetime.now().isoformat()
         conf["duration"] = duration
         conf["tps"] = tps
         conf["client_hostname"] = socket.gethostname()
