@@ -10,7 +10,7 @@
      "sort":{
 	 "MatchxClusterIds.confidenceRate": -1
      },
-     "number": 1000,
+     "number": 10000,
      "schema":
      {
 	 "type":"object",
