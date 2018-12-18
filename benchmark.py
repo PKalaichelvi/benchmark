@@ -15,6 +15,7 @@ import argparse
 import socket
 import pymongo
 #import elasticsearch
+import datetime
 
 letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -81,6 +82,12 @@ def gendoc(schema,env):
             final_ret = min_
         elif final_ret > max_:
             final_ret = max_
+    elif type_ == "rectangle":
+        x1 = gendoc(schema["x1"],env)
+        y1 = gendoc(schema["y1"],env)
+        x2 = gendoc(schema["x2"],env)
+        y2 = gendoc(schema["y2"],env)
+        final_ret = [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
     elif type_ == "file":
         path = schema["path"]
         if not path in file_registry:
@@ -145,6 +152,7 @@ def monitor(lock_rem, lock_fin, lock_nret, start_time, remaining_operations, fin
             humanize.intcomma(remaining_operations.value),
             humanize.intcomma(nreturned_operations.value)))
 
+        conf["timestamp"] = datetime.datetime.now().isoformat()
         conf["duration"] = duration
         conf["tps"] = tps
         conf["client_hostname"] = socket.gethostname()

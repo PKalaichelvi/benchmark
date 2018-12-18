@@ -1,0 +1,55 @@
+{"host": "datalake1",
+ "port": 27018,
+ "db": "dbtest",
+ "col": "coltest",
+ "batchSize": 1,
+ "nthread": 2,
+ "operation": {
+     "type":"find",
+     "number": 1000,
+     "schema":
+     {
+	 "type":"object",
+	 "fields":{
+	     "MatchxClusterIds.clusters.cluster1.id": {"type":"integer","min":1,"max":15,"ident":"clusterid"},
+	     "MatchxClusterIds.clusters.cluster1.uid1":{
+		 "type":"refprefstring",
+		 "ref":"clusterid",
+		 "prefix":"s",
+		 "value":{"type":"integer","min":0,"max":5}
+	     },
+	     "geoloc.coordinates": {
+		 "type": "object",
+		 "fields":{
+		     "$near":{
+			 "type":"object",
+			 "fields":{
+			     "$geometry":{
+				 "type":"object",
+				 "fields":{
+				     "type":{
+					 "type":"cststring",
+					 "content":"Point"
+				     },
+				     "coordinates":{
+					 "type":"array",
+					 "min":2,
+					 "max":2,
+					 "value":{
+					     "type":"gauss",
+					     "min":0,
+					     "max":50,
+					     "mu":25,
+					     "sigma":3
+					 }
+				     }
+				 }
+			     }
+                         }
+		     }
+		 }
+	     }
+	 }
+     }
+ }
+}
